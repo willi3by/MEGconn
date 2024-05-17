@@ -9,3 +9,7 @@ def load_mat_trials_data(file_path):
         trials[i] = ds_trials[i][0]
     
     return trials
+
+def demean_trials(trials):
+    mean_per_trial = np.mean(trials, axis=(1, 2), keepdims=True)
+    return trials - mean_per_trial
