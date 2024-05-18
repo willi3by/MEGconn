@@ -4,24 +4,31 @@ from numpy import random
 #Original code assumes 2d array with (channels, time) dimensions
 #New data will be 3d array with (trials, channels, time) dimensions
 
-def correlated_noise_surrogates(original_data):
-         #  Get shapes
-        (n_surr, n_trials, n_channels, n_time) = original_data.shape
-        surrogates = np.fft.rfft(original_data, axis=3)
-        len_phase = surrogates.shape[3]
-        #  Generate random phases uniformly distributed in the
-        #  interval [0, 2*Pi]
-        phases = random.uniform(low=0, high=2 * np.pi, size=(n_surr, n_trials, n_channels, len_phase))
+def correlated_noise_surrogates(original_data, use_gpu=False):
+    if use_gpu:
+        import cupy as cp
+        np = cp
+    
+        #  Get shapes
+    (n_surr, n_trials, n_channels, n_time) = original_data.shape
+    surrogates = np.fft.rfft(original_data, axis=3)
+    len_phase = surrogates.shape[3]
+    #  Generate random phases uniformly distributed in the
+    #  interval [0, 2*Pi]
+    phases = random.uniform(low=0, high=2 * np.pi, size=(n_surr, n_trials, n_channels, len_phase))
 
-        #  Add random phases uniformly distributed in the interval [0, 2*Pi]
-        surrogates *= np.exp(1j * phases)
+    #  Add random phases uniformly distributed in the interval [0, 2*Pi]
+    surrogates *= np.exp(1j * phases)
 
-        #  Calculate IFFT and take the real part, the remaining imaginary part
-        #  is due to numerical errors.
-        return np.ascontiguousarray(np.real(np.fft.irfft(surrogates, n=n_time,
-                                                         axis=3)))
+    #  Calculate IFFT and take the real part, the remaining imaginary part
+    #  is due to numerical errors.
+    return np.ascontiguousarray(np.real(np.fft.irfft(surrogates, n=n_time,
+                                                        axis=3)))
 
-def AAFT_surrogates(original_data, n_surr=10):
+def AAFT_surrogates(original_data, n_surr=10, use_gpu=False):
+    if use_gpu:
+        import cupy as cp
+        np = cp
     n_surr, n_trials, n_channels, n_time = original_data.shape
     #  Create sorted Gaussian reference series
     gaussian = random.randn(n_surr, n_trials, n_channels, n_time)
@@ -53,7 +60,10 @@ def AAFT_surrogates(original_data, n_surr=10):
 
     return rescaled_data, ranks
 
-def refined_AAFT_surrogates(original_data, max_iterations, n_surr=10, tolerance=4):
+def refined_AAFT_surrogates(original_data, max_iterations, n_surr=10, tolerance=4, use_gpu=False):
+    if use_gpu:
+        import cupy as cp
+        np = cp
     extended_data = np.repeat(original_data[None,...], n_surr, axis=0)
     #  Get size of dimensions
     n_surr, n_trials, n_channels, n_time = extended_data.shape

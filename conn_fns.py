@@ -23,7 +23,10 @@ def compute_wpli(freq_data, l2norm=False):
     
     return wpli
 
-def compute_wpli_surrogates(freq_data, l2norm=False):
+def compute_wpli_surrogates(freq_data, l2norm=False, use_gpu=False):
+    if use_gpu:
+        import cupy as cp
+        np = cp
     n_surrogates, n_trials, n_channels, n_freqs = freq_data.shape
     outsum = np.zeros((n_surrogates, n_channels, n_channels, n_freqs), dtype=np.complex128)
     outsumW = np.zeros((n_surrogates, n_channels, n_channels, n_freqs), dtype=np.complex128)

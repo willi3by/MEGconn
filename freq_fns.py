@@ -19,7 +19,10 @@ def mtmfft(data, tapsmofrq, fsample, freq_range):
     
     return data, freqs[freq_idxs]
 
-def mtmfft_surrogates(data, tapsmofrq, fsample, freq_range):
+def mtmfft_surrogates(data, tapsmofrq, fsample, freq_range, use_gpu=False):
+    if use_gpu:
+        import cupy as cp
+        np = cp
     n_surrogates, n_trials, n_channels, n_time = data.shape
     taps = dpss_filters(n_time, tapsmofrq, fsample)
     rep_taps = np.tile(taps, (n_surrogates, n_trials, n_channels, 1))
