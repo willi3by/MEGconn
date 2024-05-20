@@ -23,8 +23,11 @@ def mtmfft_surrogates(data, tapsmofrq, fsample, freq_range, use_gpu=False):
     if use_gpu:
         import cupy as cp
         np = cp
+        data = cp.array(data)
     n_surrogates, n_trials, n_channels, n_time = data.shape
     taps = dpss_filters(n_time, tapsmofrq, fsample)
+    if use_gpu:
+        taps = cp.array(taps)
     rep_taps = np.tile(taps, (n_surrogates, n_trials, n_channels, 1))
     data *= rep_taps
     #Get frequencies and filter data to a certain frequency range

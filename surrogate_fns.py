@@ -1,5 +1,4 @@
 import numpy as np
-from numpy import random
 
 #Original code assumes 2d array with (channels, time) dimensions
 #New data will be 3d array with (trials, channels, time) dimensions
@@ -15,7 +14,7 @@ def correlated_noise_surrogates(original_data, use_gpu=False):
     len_phase = surrogates.shape[3]
     #  Generate random phases uniformly distributed in the
     #  interval [0, 2*Pi]
-    phases = random.uniform(low=0, high=2 * np.pi, size=(n_surr, n_trials, n_channels, len_phase))
+    phases = np.random.uniform(low=0, high=2 * np.pi, size=(n_surr, n_trials, n_channels, len_phase))
 
     #  Add random phases uniformly distributed in the interval [0, 2*Pi]
     surrogates *= np.exp(1j * phases)
@@ -31,7 +30,7 @@ def AAFT_surrogates(original_data, n_surr=10, use_gpu=False):
         np = cp
     n_surr, n_trials, n_channels, n_time = original_data.shape
     #  Create sorted Gaussian reference series
-    gaussian = random.randn(n_surr, n_trials, n_channels, n_time)
+    gaussian = np.random.randn(n_surr, n_trials, n_channels, n_time)
     gaussian.sort(axis=3)
 
     #  Rescale data to Gaussian distribution
@@ -45,7 +44,7 @@ def AAFT_surrogates(original_data, n_surr=10, use_gpu=False):
     
     #  Phase randomize rescaled data
     phase_randomized_data = \
-        correlated_noise_surrogates(rescaled_data)
+        correlated_noise_surrogates(rescaled_data, use_gpu=use_gpu)
 
     #  Rescale back to amplitude distribution of original data
     sorted_original = original_data.copy()
@@ -60,10 +59,11 @@ def AAFT_surrogates(original_data, n_surr=10, use_gpu=False):
 
     return rescaled_data, ranks
 
-def refined_AAFT_surrogates(original_data, max_iterations, n_surr=10, tolerance=4, use_gpu=False):
+def refined_AAFT_surrogates(original_data, max_iterations=200, n_surr=10, tolerance=4, use_gpu=False):
     if use_gpu:
         import cupy as cp
         np = cp
+        original_data = cp.array(original_data)
     extended_data = np.repeat(original_data[None,...], n_surr, axis=0)
     #  Get size of dimensions
     n_surr, n_trials, n_channels, n_time = extended_data.shape
@@ -79,7 +79,7 @@ def refined_AAFT_surrogates(original_data, max_iterations, n_surr=10, tolerance=
 
     #  Get starting point / initial conditions for R surrogates
     # (see [Schreiber2000]_)
-    R, indold = AAFT_surrogates(extended_data)
+    R, indold = AAFT_surrogates(extended_data, use_gpu=use_gpu)
     counter = 0
     convergence = False
 
