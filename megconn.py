@@ -3,10 +3,10 @@ from freq_fns import *
 from surrogate_fns import *
 from utils import load_mat_trials_data
 
-def get_wpli_z(filename, tapsmofrq=2, fsample=1200, freq_range=[1,100], 
+def get_wpli_z(filename, mat_field='vs_verb', tapsmofrq=2, fsample=1200, freq_range=[1,100], 
                n_surr=100, n_blocks=10, max_iterations = 200, tolerance=4, 
                l2norm=True, use_gpu=True):
-    trials = load_mat_trials_data(filename)
+    trials = load_mat_trials_data(filename, mat_field=mat_field)
     freq_data, freqs = mtmfft(trials, tapsmofrq=tapsmofrq, fsample=fsample, freq_range=freq_range)
     wpli = compute_wpli(freq_data, l2norm=l2norm)
     n_surr_per_iter = n_surr//n_blocks
